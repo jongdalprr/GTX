@@ -1,43 +1,77 @@
-<script>
-  const timetable = [
-    "05:30","05:40","05:50","06:00","06:10","06:20",
-    "06:30","06:40","06:50","07:00","07:10","07:20",
-    "07:30","07:40","07:50","08:00","08:15","08:30",
-    "08:45","09:00","09:20","09:40","10:00","10:20",
-    "17:20","17:45","18:10","18:30","18:50","19:10",
-    "23:38","00:38"
-  ];
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GTX-A 서울역 상행 25분 이내 열차</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  h1 { color: #007bff; }
+  ul { padding-left: 0; list-style: none; }
+  li { margin: 8px 0; font-size: 1.1rem; }
+  .no-train { color: gray; font-style: italic; }
+</style>
+</head>
+<body>
+  <h1>GTX-A 서울역 상행 — 25분 이내 출발 열차</h1>
+  <ul id="train-list"></ul>
 
-  function getUpcomingTrains() {
-    const now = new Date();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const list = document.getElementById("train-list");
-    list.innerHTML = '';
+  <script>
+    // 실제 GTX-A 서울역 상행 시간표 예시 (오후 시간대 포함)
+    const timetable = [
+      "05:30", "05:40", "05:50", "06:00", "06:10", "06:20",
+      "06:30", "06:40", "06:50", "07:00", "07:10", "07:20",
+      "07:30", "07:40", "07:50", "08:00", "08:15", "08:30",
+      "08:45", "09:00", "09:20", "09:40", "10:00", "10:20",
+      "17:20", "17:45", "18:10", "18:30", "18:50", "19:10",
+      "23:38", "00:38"
+    ];
 
-    let count = 0;
-    timetable.forEach(time => {
-      const [h, m] = time.split(':').map(Number);
-      let trainMin = h * 60 + m;
-      let diff = trainMin - nowMinutes;
-      if (diff < 0) diff += 1440;
-
-      if (diff >= 0 && diff <= 25) {
-        const li = document.createElement('li');
-        li.textContent = `${time} (약 ${diff}분 후)`;
-        console.log(`열차: ${time}, 남은분: ${diff}`); // 디버그용
-        list.appendChild(li);
-        count++;
-      }
-    });
-
-    if (!count) {
-      const li = document.createElement('li');
-      li.textContent = '25분 내 출발하는 GTX-A 열차가 없습니다.';
-      li.className = 'no-train';
-      list.appendChild(li);
+    function getCurrentKorTime() {
+      // 한국 시간 가져오기
+      const now = new Date();
+      // UTC 기준에서 +9시간 적용하여 한국 시간으로 변환
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const korTime = new Date(utc + (9 * 3600000));
+      return korTime;
     }
-  }
 
-  getUpcomingTrains();
-  setInterval(getUpcomingTrains, 60000);
-</script>
+    function getUpcomingTrains() {
+      const now = getCurrentKorTime();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+      const list = document.getElementById("train-list");
+      list.innerHTML = "";
+
+      let count = 0;
+
+      timetable.forEach(time => {
+        const [h, m] = time.split(":").map(Number);
+        let trainMinutes = h * 60 + m;
+        let diff = trainMinutes - nowMinutes;
+
+        if (diff < 0) diff += 1440; // 다음날 열차 고려
+
+        if (diff >= 0 && diff <= 25) {
+          const li = document.createElement("li");
+          li.textContent = `${time} (약 ${diff}분 후 출발)`;
+          list.appendChild(li);
+          count++;
+        }
+      });
+
+      if (count === 0) {
+        const li = document.createElement("li");
+        li.textContent = "25분 내 출발하는 GTX-A 열차가 없습니다.";
+        li.className = "no-train";
+        list.appendChild(li);
+      }
+    }
+
+    // 최초 실행
+    getUpcomingTrains();
+    // 1분마다 갱신
+    setInterval(getUpcomingTrains, 60000);
+  </script>
+</body>
+</html>
