@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF‑8">
+  <meta name="viewport" content="width=device‑width,initial-scale=1.0">
+  <title>GTX-A 서울역(상행) 25분 이내</title>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    h2 { color:#007bff; font-size:1.2rem; }
+    ul { list-style:none;padding:0;}
+    li { padding:6px 0;font-size:1rem; }
+    .no-train { color:#888; font-style:italic; }
+  </style>
+</head>
+<body>
+  <h2>GTX-A 🚄 서울역 상행<br>25분 이내 출발 열차</h2>
+  <ul id="train-list"></ul>
+
+  <script>
+    const timetable = [
+      "05:30","05:40","05:50","06:00","06:10","06:20",
+      "06:30","06:40","06:50","07:00","07:10","07:20",
+      "07:30","07:40","07:50","08:00","08:15","08:30",
+      "08:45","09:00","09:20","09:40","10:00","10:20",
+      // ... 필요시 하루 전체 시간대 추가
+      "23:38","00:38"
+    ];
+
+    function getUpcomingTrains() {
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const list = document.getElementById("train-list");
+      list.innerHTML = '';
+
+      let count = 0;
+      timetable.forEach(time => {
+        const [h, m] = time.split(':').map(Number);
+        let trainMin = h * 60 + m;
+        let diff = trainMin - nowMinutes;
+        if (diff < 0) diff += 1440;
+
+        if (diff >= 0 && diff <= 25) {
+          const li = document.createElement('li');
+          li.textContent = `${time} (약 ${diff}분 후)`;
+          list.appendChild(li);
+          count++;
+        }
+      });
+
+      if (!count) {
+        const li = document.createElement('li');
+        li.textContent = '25분 내 출발하는 GTX-A 열차가 없습니다.';
+        li.className = 'no-train';
+        list.appendChild(li);
+      }
+    }
+
+    getUpcomingTrains();
+    setInterval(getUpcomingTrains, 60000);
+  </script>
+</body>
+</html>
